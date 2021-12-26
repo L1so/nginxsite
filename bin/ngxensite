@@ -3,6 +3,69 @@
 # Enabling site in NginX
 # Credit to: https://gist.github.com/fideloper/8261546
 # Slightly modified code
+! getopt --test > /dev/null
+if [[ ${PIPESTATUS[0]} -ne 4 ]]; then
+  echo 'I’m sorry, `getopt --test` failed in this environment.'
+  exit 1
+fi
+
+# Begin function
+function display_help() {
+  echo "usage: $(basename $0) [OPTION] [SITENAME]" >&2
+  echo
+  echo "   -r, --restart              immediately restart nginx after operation"
+  echo "   -h, --help                 display this help section"
+  exit 0
+}
+function do_restart() {
+  local status=$?
+  if (( status == 0 )); then
+    nginxsite="${opt:-$optsite}"
+    tempfile=$(mktemp)
+    printf "Reloading configuration..."
+    if /usr/sbin/nginx -s reload 2>$tempfile; then
+      sleep 1
+      printf ' Done ! \n'
+    else
+      sleep 1
+      printf ' Failed ! \n'
+      printf "%s\n" "$(<$tempfile)"
+    fi
+    rm $tempfile
+  else
+    exit $status
+  fi
+}
+
+! optfin=$(getopt --options="rh" --longoptions="restart,help" --name "$0" -- "$@")
+if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
+    # e.g. return value is 1
+    #  then getopt has complained about wrong arguments to stdout
+    exit 2
+fi
+eval set -- "$optfin"
+while [ $# -gt 0 ]; do
+    case "$1" in
+       -r|--restart)
+             trap do_restart EXIT
+             shift
+             ;;
+       -h|--help)
+             display_help
+             ;;
+       --)
+             shift
+             break
+             ;;
+       -*)
+             display_help
+             ;;
+       *)
+             break
+             ;;
+    esac
+done
+
 nginx_available="/etc/nginx/sites-available"
 nginx_enabled="/etc/nginx/sites-enabled"
 
