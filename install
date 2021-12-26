@@ -8,15 +8,13 @@ else
  nginx_available="/etc/nginx/sites-available"
  nginx_enabled="/etc/nginx/sites-enabled"
  scriptdir=$(dirname "$(readlink -f "$0")")
- USER_HOME=$(getent passwd $SUDO_USER | cut -d: -f6)
  ngxcondition="/root/.ngx_donotremove"
  # First run
  printf "Installing nginx site wrapper script..."
  # Installing autocomplete
  if [ ! -f $ngxcondition ]; then
    touch $ngxcondition
-   cp $USER_HOME/.bashrc $USER_HOME/.bashrc.ngx_backup
-   cat <<'EOF' >> "$USER_HOME/.bashrc"
+   cat <<'EOF' >> "/etc/bash_completion.d/nginxsite_complete"
 # BEGIN AUTOCOMPLETE
 function _site_complete() {
 local sitenginx sitepath
@@ -35,7 +33,6 @@ done
 complete -F _site_complete ngxensite ngxdissite ngxcreate
 # END AUTOCOMPLETE
 EOF
-  . $USER_HOME/.bashrc
  fi
  # Creating directory if not exist
  if [ ! -d "$nginx_available" ]; then mkdir -p "$nginx_available"; fi
@@ -48,6 +45,5 @@ EOF
  cp --no-preserve=mode,ownership "${scriptdir}/bin/ngxdissite" /usr/local/bin/
  cp --no-preserve=mode,ownership "${scriptdir}/bin/ngxcreate" /usr/local/bin/
  chmod 755 /usr/local/bin/ngxensite /usr/local/bin/ngxdissite /usr/local/bin/ngxcreate
- sleep 2
  printf ' Done !\n'
 fi

@@ -5,10 +5,7 @@ if [[ $EUID -ne 0 ]]; then
   exit 1
 else
   printf "Removing nginx site wrapper script..."
-  USER_HOME=$(getent passwd $SUDO_USER | cut -d: -f6)
-  rm -f /usr/local/bin/ngxensite /usr/local/bin/ngxdissite /usr/local/bin/ngxcreate /root/.ngx_donotremove
-  mv $USER_HOME/.bashrc.ngx_backup $USER_HOME/.bashrc
+  rm -f /usr/local/bin/ngxensite /usr/local/bin/ngxdissite /usr/local/bin/ngxcreate /root/.ngx_donotremove /etc/bash_completion.d/nginxsite_complete
   mv /etc/nginx/.nginx.conf.ngx_backup /etc/nginx/nginx.conf
-  sleep 2
   printf ' Done !\n'
 fi
