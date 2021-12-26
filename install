@@ -19,8 +19,8 @@ else
 function _site_complete() {
 local sitenginx sitepath
 case ${COMP_LINE} in
-  *ngxen*|*ngxcre*) sitepath="available";;
-  *ngxdis*) sitepath="enabled";;
+  *gxen*|*gxcre*) sitepath="available";;
+  *gxdis*) sitepath="enabled";;
 esac
 if [ $(ls -q /etc/nginx/sites-${sitepath}/ | wc -l) -eq 1 ]; then
   (( COMP_CWORD > 1 )) && return
