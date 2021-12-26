@@ -2,7 +2,7 @@
 # Creating NginX site seamlessly
 nginx_available="/etc/nginx/sites-available"
 defeditor="${EDITOR:-${VISUAL:-nano}}"
-fqdnregex='(?=^.{1,253}$)(^(((?!-)[a-zA-Z0-9-]{1,63}(?<!-))|((?!-)[a-zA-Z0-9-]{1,63}(?<!-)\.)+[a-zA-Z]{2,63})$)' # Taken from https://stackoverflow.com/a/20204811/12289283
+fqdnregex='(?=^.{1,253}$)(^(((?!-)[a-zA-Z0-9-]{1,63}(?<!-))|((?!-)[a-zA-Z0-9-]{1,63}(?<!-)\.)+[a-zA-Z]{2,63})$)'
 if [ -z "$1" ]; then
   read -rep $'Please Enter a Domain Name (default TLD is .com):\n' defdomain
 else
