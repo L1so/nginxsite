@@ -8,14 +8,13 @@ else
  nginx_enabled="/etc/nginx/sites-enabled"
  scriptdir=$(dirname "$(readlink -f "$0")")
  ngxcondition="/root/.ngx_donotremove"
- completionfile="/etc/profile.d/bash_completion.sh"
- [ ! -f "$completionfile" ] && completionfile="/etc/bash_completion.d/nginxsite_complete"
+ completionfile="/etc/bash_completion.d/nginxsite_complete"
  # First run
  printf "Installing nginx site wrapper script..."
  # Installing autocomplete
  if [ ! -f $ngxcondition ]; then
    touch $ngxcondition
-   cat <<'EOF' >> "/etc/bash_completion.d/nginxsite_complete"
+   cat <<'EOF' >> "$completionfile"
 # BEGIN AUTOCOMPLETE
 function _site_complete() {
 local sitenginx sitepath
