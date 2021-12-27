@@ -9,6 +9,8 @@ else
  nginx_enabled="/etc/nginx/sites-enabled"
  scriptdir=$(dirname "$(readlink -f "$0")")
  ngxcondition="/root/.ngx_donotremove"
+ completionfile="/etc/profile.d/bash_completion.sh"
+ [ ! -f "$completionfile" ] && completionfile="/etc/bash_completion.d/nginxsite_complete"
  # First run
  printf "Installing nginx site wrapper script..."
  # Installing autocomplete
@@ -33,6 +35,7 @@ done
 complete -F _site_complete ngxensite ngxdissite ngxcreate
 # END AUTOCOMPLETE
 EOF
+. "$completionfile"
  fi
  # Creating directory if not exist
  if [ ! -d "$nginx_available" ]; then mkdir -p "$nginx_available"; fi
