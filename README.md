@@ -11,7 +11,7 @@ Easy enabling/disabling site on NginX, using Bash Script. This is an attempt to 
 Download your copies of repository, then execute `install` script located on main directory. Note that this required root user.
 ```bash
 wget -O nginxsite.zip https://github.com/L1so/nginxsite/archive/refs/heads/main.zip
-unip -qq nginxsite.zip && rm nginxsite.zip
+unzip -qq nginxsite.zip && rm nginxsite.zip
 cd nginxsite-main && sudo ./install
 ```
 Or if you prefer `clone`.
