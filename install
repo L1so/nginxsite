@@ -33,7 +33,6 @@ done
 complete -F _site_complete ngxensite ngxdissite ngxcreate
 # END AUTOCOMPLETE
 EOF
-. "$completionfile"
  fi
  # Creating directory if not exist
  if [ ! -d "$nginx_available" ]; then mkdir -p "$nginx_available"; fi
@@ -48,4 +47,5 @@ EOF
  chmod 755 /usr/local/bin/ngxensite /usr/local/bin/ngxdissite /usr/local/bin/ngxcreate
  sleep 1
  printf ' Done !\n'
+ . "$completionfile"
 fi
