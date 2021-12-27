@@ -7,5 +7,6 @@ else
   printf "Removing nginx site wrapper script..."
   rm -f /usr/local/bin/ngxensite /usr/local/bin/ngxdissite /usr/local/bin/ngxcreate /root/.ngx_donotremove /etc/bash_completion.d/nginxsite_complete
   mv /etc/nginx/.nginx.conf.ngx_backup /etc/nginx/nginx.conf
+  sleep 1
   printf ' Done !\n'
 fi
