@@ -1,5 +1,9 @@
 #!/bin/bash
 # Creating NginX site seamlessly
+if [[ $EUID -ne 0 ]]; then
+   echo "This script must be run as root"
+   exit 1
+fi
 nginx_available="/etc/nginx/sites-available"
 defeditor="${EDITOR:-${VISUAL:-nano}}"
 fqdnregex='(?=^.{1,253}$)(^(((?!-)[a-zA-Z0-9-]{1,63}(?<!-))|((?!-)[a-zA-Z0-9-]{1,63}(?<!-)\.)+[a-zA-Z]{2,63})$)'

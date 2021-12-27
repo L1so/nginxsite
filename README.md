@@ -1,19 +1,25 @@
 # nginxsite
-Easy enabling/disabling site on NginX, using Bash Script.
+Easy enabling/disabling site on NginX, using Bash Script. This is an attempt to replicate apache `a2ensite` & `a2dissite` feature.
 
 ## Feature
 - Autocomplete.
 - Interactive menu.
 - Easy [un]install script.
-- Easy to use.
+- Beginner friendly.
 
 ### Installation
-To install, execute `install` script located on main directory. Note that this required root user.
+Download your copies of repository, then execute `install` script located on main directory. Note that this required root user.
 ```bash
-sudo ./install
+wget -O nginxsite.zip https://github.com/L1so/nginxsite/archive/refs/heads/main.zip
+unip -qq nginxsite.zip && rm nginxsite.zip
+cd nginxsite-main && sudo ./install
+```
+Or if you prefer `clone`.
+```bash
+git clone https://github.com/L1so/nginxsite.git
+cd nginxsite && sudo ./install
 ```
 By installing, following things will happen.
-- Adding new entries on `~/.bashrc`
 - Creating directory `/etc/nginx/sites-{available,enabled}` if not exist
 - Copying main script to `/usr/local/bin/`
 
@@ -22,8 +28,7 @@ Just execute `uninstall` script located on this repository.
 ```bash
 sudo ./uninstall
 ```
-It will remove all trace of `nginxsite`, this include entries on `~/.bash.rc` and `/usr/local/bin`.
-
+It will remove all trace of `nginxsite`.
 ## General usage
 This section will show you general use of this snippet.
 ### Enabling
@@ -36,3 +41,15 @@ To deactivate a site, replace `(YOUR SITE)` with your actual site domain (locate
 ```bash
 sudo ngxdissite (YOUR SITE)
 ```
+### Create NginX server block
+You can now create NginX server block (equivalent to apaches virtualhost) seamlessly.
+```bash
+sudo ngxcreate (YOUR SITE NAME)
+```
+Running `ngxcreate` without any argument will give you a prompt to enter desired site name, if you don't include TLD, the script will give you `.com` domain.
+```bash
+$ sudo ngxcreate
+Please Enter a Domain Name (default TLD is .com):
+examplesite
+```
+Will save a new file named `/etc/nginx/sites-available/examplesite.com`
