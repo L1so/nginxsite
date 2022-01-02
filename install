@@ -16,21 +16,40 @@ else
    touch $ngxcondition
    cat <<'EOF' >> "$completionfile"
 # BEGIN AUTOCOMPLETE
-function _site_complete() {
-local sitenginx sitepath
-case ${COMP_LINE} in
-  *gxen*|*gxcre*) sitepath="available";;
-  *gxdis*) sitepath="enabled";;
-esac
-if [ $(ls -q /etc/nginx/sites-${sitepath}/ | wc -l) -eq 1 ]; then
-  (( COMP_CWORD > 1 )) && return
-fi
-for sitenginx in /etc/nginx/sites-${sitepath}/"$2"*; do
- [[ -f $sitenginx ]] || continue
- COMPREPLY+=( $(basename "$sitenginx") )
-done
+function _site_complete()
+{
+    local comnum cur opts sitepath
+    [[ "${COMP_WORDS[@]}" == *"-"* ]] && comnum=2 || comnum=1;
+    case ${COMP_LINE} in
+      *ensite*|*create*) sitepath="available";;
+      *dissite*) sitepath="enabled";;
+    esac
+
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    opts="--help --restart -h -r"
+
+    if (( COMP_CWORD > comnum )); then
+        for filename in "/etc/nginx/sites-${sitepath}/"*; do
+            [[ -f $filename ]] || continue
+            COMPREPLY+=( $(echo ${filename##*/}) )
+        done
+        [[ ${#COMPREPLY[@]} -gt 0 ]] && COMPREPLY+=('')
+        return
+    fi
+
+    if [[ ${cur} == -* ]]; then
+        COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+        return 0
+    else
+      for sitenginx in /etc/nginx/sites-${sitepath}/"$2"*; do
+          [[ -f $sitenginx ]] || continue
+          COMPREPLY+=( $(echo ${sitenginx##*/}) )
+      done
+    fi
 }
-complete -F _site_complete ngxensite ngxdissite ngxcreate
+
+complete -o nosort -F _site_complete ngxensite ngxdissite ngxcreate
 # END AUTOCOMPLETE
 EOF
 . "$completionfile"
