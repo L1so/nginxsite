@@ -49,7 +49,7 @@ function _site_complete()
     fi
 }
 
-complete -o nosort -F _site_complete ngxensite ngxdissite ngxcreate
+complete -F _site_complete ngxensite ngxdissite ngxcreate
 # END AUTOCOMPLETE
 EOF
 . "$completionfile"
