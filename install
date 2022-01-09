@@ -34,7 +34,7 @@ function _site_complete()
             [[ -f $filename ]] || continue
             COMPREPLY+=( $(echo ${filename##*/}) )
         done
-        [[ ${#COMPREPLY[@]} -gt 0 ]] && COMPREPLY+=('')
+        [[ ${#COMPREPLY[@]} -gt 0 ]] && COMPREPLY+=( $'\xC2\xA0' )
         return
     fi
 
