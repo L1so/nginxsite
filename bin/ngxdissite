@@ -1,5 +1,4 @@
 #!/bin/bash
-
 # Disabling site in NginX
 # Credit to: https://gist.github.com/fideloper/8261546
 ! getopt --test > /dev/null
@@ -100,23 +99,21 @@ if [ $# -eq 0 ]; then
 else
     # -h filename: True if file exists and is a symbolic link.
     # -f filename: Returns True if file, filename is an ordinary file.
-    optsite="$1"
-    set -- "$(basename $optsite)"
-    if [ -L "${nginx_enabled}/$optsite" ]; then
-      if [ -e "${nginx_enabled}/$optsite" ]; then
+    for optsite in "$@"; do
+      set -- "$(basename $optsite)"
+      if [ -L "${nginx_enabled}/$optsite" ]; then
         rm "${nginx_enabled}/$optsite"
         echo "Successfully disabling $optsite !"
       else
         echo "$optsite is a broken symlink, check $nginx_available for $optsite existence !"
-        exit 1
+        continue
       fi
-    elif [ -e "${nginx_enabled}/$optsite" ]; then
-      echo "$optsite is not valid symlink"
-      echo "This means $optsite probably is file left by some operation, and not by this script"
-      echo "Please delete manually by issuing: rm -f ${nginx_enabled}/${optsite}" '!'
-      exit 1
-    else
-      echo "$optsite does not exist !"
-      exit 1
-    fi
+      elif [ -e "${nginx_enabled}/$optsite" ]; then
+        echo "$optsite is not valid symlink !"
+        continue
+      else
+        echo "$optsite does not exist !"
+        continue
+      fi
+    done
 fi

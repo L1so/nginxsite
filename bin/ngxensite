@@ -1,8 +1,6 @@
 #!/bin/bash
-
 # Enabling site in NginX
 # Credit to: https://gist.github.com/fideloper/8261546
-# Slightly modified code
 ! getopt --test > /dev/null
 if [[ ${PIPESTATUS[0]} -ne 4 ]]; then
   echo 'I’m sorry, `getopt --test` failed in this environment.'
@@ -91,7 +89,7 @@ if [ $# -eq 0 ]; then
       elif [ -z "$opt" ]; then
         echo "Invalid choices" >&2
       else
-        if [ -L "${nginx_available}/$opt" ] || [ -f "${nginx_enabled}/$opt" ]; then
+        if [ -L "${nginx_enabled}/$opt" ]; then
             echo "$opt is already enabled !"
             exit 1
         else
@@ -109,19 +107,20 @@ if [ $# -eq 0 ]; then
   fi
 else
   # Check if symlink exist, and exit if it does in fact exit
-  optsite="$1"
-  set -- "$(basename $optsite)"
-  if [ -L "${nginx_enabled}/$optsite" ]; then
-    echo "$1 is already enabled !"
-    exit 1
-  else
-    if [ -f "${nginx_available}/$optsite" ]; then
-      ln -s "${nginx_available}/$optsite" "${nginx_enabled}/$optsite"
-      echo "Successfully enabling $optsite !"
-      exit 0
+  for optsite in "$@"; do
+    set -- "$(basename $optsite)"
+    if [ -L "${nginx_enabled}/$optsite" ]; then
+      echo -e "$1 is already enabled ! ${Eks}"
+      continue
     else
-      echo "Site $optsite does not exist in $nginx_available !"
-      exit 1
+      if [ -f "${nginx_available}/$optsite" ]; then
+        ln -s "${nginx_available}/$optsite" "${nginx_enabled}/$optsite"
+        echo -e "Successfully enabling $optsite ! ${Chk}"
+        continue
+      else
+        echo -e "Site $optsite does not exist in $nginx_available ! ${Eks}"
+        continue
+      fi
     fi
-  fi
+  done
 fi

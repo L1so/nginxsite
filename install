@@ -24,21 +24,20 @@ function _site_complete()
       *ensite*|*create*) sitepath="available";;
       *dissite*) sitepath="enabled";;
     esac
-
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
     opts="--help --restart -h -r"
+    [[ $(ls -q /etc/nginx/sites-${sitepath}/ | wc -l) -eq 1 ]] && COMPREPLY+=( $'\xC2\xA0' )
 
     if [[ ${cur} == -* ]]; then
         COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
         return 0
     else
-      for filename in "/etc/nginx/sites-${sitepath}/"*; do
+      for filename in /etc/nginx/sites-${sitepath}/"${cur}"*; do
           [[ -f $filename ]] || continue
           COMPREPLY+=( $(echo ${filename##*/}) )
       done
     fi
-    [[ $(ls -q /etc/nginx/sites-${sitepath}/ | wc -l) -eq 1 ]] && COMPREPLY+=( $'\xC2\xA0' )
 }
 
 complete -F _site_complete ngxensite ngxdissite ngxcreate
