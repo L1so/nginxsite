@@ -111,7 +111,9 @@ else
         exit 1
       fi
     elif [ -e "${nginx_enabled}/$optsite" ]; then
-      echo "$optsite is not valid file"
+      echo "$optsite is not valid symlink"
+      echo "This means $optsite probably is file left by some operation, and not by this script"
+      echo "Please delete manually by issuing: rm -f ${nginx_enabled}/${optsite}" '!'
       exit 1
     else
       echo "$optsite does not exist !"
