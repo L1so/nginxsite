@@ -8,6 +8,7 @@ else
  nginx_enabled="/etc/nginx/sites-enabled"
  scriptdir=$(dirname "$(readlink -f "$0")")
  ngxcondition="/root/.ngx_donotremove"
+ USER_HOME=$(getent passwd $SUDO_USER | cut -d: -f6)
  completionfile="/etc/bash_completion.d/nginxsite_complete"
  # First run
  printf "Installing nginx site wrapper script..."
@@ -18,8 +19,7 @@ else
 # BEGIN AUTOCOMPLETE
 function _site_complete()
 {
-    local comnum cur opts sitepath
-    [[ "${COMP_WORDS[@]}" == *"-"* ]] && comnum=2 || comnum=1;
+    local cur opts sitepath
     case ${COMP_LINE} in
       *ensite*|*create*) sitepath="available";;
       *dissite*) sitepath="enabled";;
@@ -29,30 +29,28 @@ function _site_complete()
     cur="${COMP_WORDS[COMP_CWORD]}"
     opts="--help --restart -h -r"
 
-    if (( COMP_CWORD > comnum )); then
-        for filename in "/etc/nginx/sites-${sitepath}/"*; do
-            [[ -f $filename ]] || continue
-            COMPREPLY+=( $(echo ${filename##*/}) )
-        done
-        [[ ${#COMPREPLY[@]} -gt 0 ]] && COMPREPLY+=( $'\xC2\xA0' )
-        return
-    fi
-
     if [[ ${cur} == -* ]]; then
         COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
         return 0
     else
-      for sitenginx in /etc/nginx/sites-${sitepath}/"$2"*; do
-          [[ -f $sitenginx ]] || continue
-          COMPREPLY+=( $(echo ${sitenginx##*/}) )
+      for filename in "/etc/nginx/sites-${sitepath}/"*; do
+          [[ -f $filename ]] || continue
+          COMPREPLY+=( $(echo ${filename##*/}) )
       done
     fi
+    [[ $(ls -q /etc/nginx/sites-${sitepath}/ | wc -l) -eq 1 ]] && COMPREPLY+=( $'\xC2\xA0' )
 }
 
 complete -F _site_complete ngxensite ngxdissite ngxcreate
 # END AUTOCOMPLETE
 EOF
-. "$completionfile"
+# Captured from .bashrc
+if [ -f /usr/share/bash-completion/bash_completion ]; then
+  . /usr/share/bash-completion/bash_completion
+elif [ -f /etc/bash_completion ]; then
+  . /etc/bash_completion
+fi
+# EndCapture
  fi
  # Creating directory if not exist
  if [ ! -d "$nginx_available" ]; then mkdir -p "$nginx_available"; fi
@@ -65,6 +63,5 @@ EOF
  cp --no-preserve=mode,ownership "${scriptdir}/bin/ngxdissite" /usr/local/bin/
  cp --no-preserve=mode,ownership "${scriptdir}/bin/ngxcreate" /usr/local/bin/
  chmod 755 /usr/local/bin/ngxensite /usr/local/bin/ngxdissite /usr/local/bin/ngxcreate
- sleep 1
  printf ' Done !\n'
 fi
