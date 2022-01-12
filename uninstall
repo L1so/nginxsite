@@ -8,11 +8,11 @@ else
   printf "Removing nginx site wrapper script..."
   rm -f /usr/local/bin/ngxensite /usr/local/bin/ngxdissite /usr/local/bin/ngxcreate /root/.ngx_donotremove /etc/bash_completion.d/nginxsite_complete
   mv /etc/nginx/.nginx.conf.ngx_backup /etc/nginx/nginx.conf
-  read -s -n1 -p "Do you want to remove this (script) directory ? (y/n)" wantremove
-  echo
   while [[ ! $wantremove =~ ^[yYnN]$ ]]; do
+    read -s -n1 -p "Do you want to remove this (script) directory ? (y/n)" wantremove
+    echo
     case "$wantremove" in
-      [Yy]* ) /bin/rm -r "$scriptdir"; echo "$scriptdir deleted" '!';;
+      [Yy]* ) rm -r "$scriptdir"; echo "$scriptdir deleted" '!';;
       [Nn]* ) exit 0;;
       * ) echo "Invalid choice" >&2;;
     esac
