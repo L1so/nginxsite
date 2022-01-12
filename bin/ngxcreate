@@ -24,5 +24,9 @@ fi
 # Launching editor
 $defeditor "${nginx_available}/${defdomain}"
 if [ $? -eq 0 ]; then
-  printf "Your site is saved at %s\n" "${nginx_available}/${defdomain}"
+  if [ ! -f "${nginx_available}/${defdomain}" ]; then
+    printf "${defdomain} is not saved !\n" "${defdomain}"
+  else
+    printf "Your site is saved at %s\n" "${nginx_available}/${defdomain}"
+  fi
 fi
