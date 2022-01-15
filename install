@@ -43,13 +43,6 @@ function _site_complete()
 complete -F _site_complete ngxensite ngxdissite ngxcreate
 # END AUTOCOMPLETE
 EOF
-# Captured from .bashrc
-if [ -f /usr/share/bash-completion/bash_completion ]; then
-  . /usr/share/bash-completion/bash_completion
-elif [ -f /etc/bash_completion ]; then
-  . /etc/bash_completion
-fi
-# EndCapture
  fi
  # Creating directory if not exist
  if [ ! -d "$nginx_available" ]; then mkdir -p "$nginx_available"; fi
