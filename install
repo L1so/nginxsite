@@ -1,24 +1,40 @@
 #!/bin/bash
 # Installation script
 if [[ $EUID -ne 0 ]]; then
-   echo "This script must be run as root"
+   echo "This script must be run as root" 1>&2
    exit 1
+fi
+if ! { dpkg-query -W -f='${Status}' bash-completion | grep "ok installed"; } > /dev/null 2>&1; then
+  {
+    echo "Bash Completion is not installed"
+    echo "You must install it first in order to use this script"
+    echo "Run: sudo apt-get install bash-completion"
+  } 1>&2
+  exit 1
+fi
+if [ -d "/etc/bash_completion.d" ]; then
+  completionpath="/etc/bash_completion.d"
+elif [ -d "/usr/share/bash-completion/completions" ]; then
+  completionpath="/usr/share/bash-completion/completions"
 else
- nginx_available="/etc/nginx/sites-available"
- nginx_enabled="/etc/nginx/sites-enabled"
- scriptdir=$(dirname "$(readlink -f "$0")")
- ngxcondition="/root/.ngx_donotremove"
- USER_HOME=$(getent passwd $SUDO_USER | cut -d: -f6)
- completionfile="/etc/bash_completion.d/nginxsite_complete"
- # First run
- printf "Installing nginx site wrapper script..."
- # Installing autocomplete
- if [ ! -f $ngxcondition ]; then
-   touch $ngxcondition
-   cat <<'EOF' >> "$completionfile"
-# BEGIN AUTOCOMPLETE
-function _site_complete()
-{
+  echo "Completion directory not found" '!?' 1>&2
+  exit 1
+fi
+nginx_available="/etc/nginx/sites-available"
+nginx_enabled="/etc/nginx/sites-enabled"
+scriptdir=$(dirname "$(readlink -f "$0")")
+ngxcondition="/root/.ngx_donotremove"
+USER_HOME=$(getent passwd $SUDO_USER | cut -d: -f6)
+completionfile="${completionpath}/nginxsite_complete"
+# First run
+printf "Installing nginx site wrapper script..."
+# Installing autocomplete
+if [ ! -f $ngxcondition ]; then
+  touch $ngxcondition
+  cat <<'EOF' >> "$completionfile"
+  # BEGIN AUTOCOMPLETE
+  function _site_complete()
+  {
     local cur opts sitepath
     case ${COMP_LINE} in
       *ensite*|*create*) sitepath="available";;
@@ -30,30 +46,29 @@ function _site_complete()
     [[ $(ls -q /etc/nginx/sites-${sitepath}/ | wc -l) -eq 1 ]] && COMPREPLY+=( $'\xC2\xA0' )
 
     if [[ ${cur} == -* ]]; then
-        COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
-        return 0
+      COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+      return 0
     else
       for filename in /etc/nginx/sites-${sitepath}/"${cur}"*; do
-          [[ -f $filename ]] || continue
-          COMPREPLY+=( $(echo ${filename##*/}) )
+        [[ -f $filename ]] || continue
+        COMPREPLY+=( $(echo ${filename##*/}) )
       done
     fi
-}
+  }
 
-complete -F _site_complete ngxensite ngxdissite ngxcreate
-# END AUTOCOMPLETE
+  complete -F _site_complete ngxensite ngxdissite ngxcreate
+  # END AUTOCOMPLETE
 EOF
- fi
- # Creating directory if not exist
- if [ ! -d "$nginx_available" ]; then mkdir -p "$nginx_available"; fi
- if [ ! -d "$nginx_enabled" ]; then mkdir -p "$nginx_enabled"; fi
- # Configure nginx to use sites-enabled
- sed -i.ngx_backup '/include.*conf/ a\    include /etc/nginx/sites-enabled/*;' /etc/nginx/nginx.conf
- mv /etc/nginx/nginx.conf.ngx_backup /etc/nginx/.nginx.conf.ngx_backup
- # Moving executable
- cp --no-preserve=mode,ownership "${scriptdir}/bin/ngxensite" /usr/local/bin/
- cp --no-preserve=mode,ownership "${scriptdir}/bin/ngxdissite" /usr/local/bin/
- cp --no-preserve=mode,ownership "${scriptdir}/bin/ngxcreate" /usr/local/bin/
- chmod 755 /usr/local/bin/ngxensite /usr/local/bin/ngxdissite /usr/local/bin/ngxcreate
- printf ' Done !\n'
 fi
+# Creating directory if not exist
+if [ ! -d "$nginx_available" ]; then mkdir -p "$nginx_available"; fi
+if [ ! -d "$nginx_enabled" ]; then mkdir -p "$nginx_enabled"; fi
+# Configure nginx to use sites-enabled
+sed -i.ngx_backup '/include.*conf/ a\    include /etc/nginx/sites-enabled/*;' /etc/nginx/nginx.conf
+mv /etc/nginx/nginx.conf.ngx_backup /etc/nginx/.nginx.conf.ngx_backup
+# Moving executable
+cp --no-preserve=mode,ownership "${scriptdir}/bin/ngxensite" /usr/local/bin/
+cp --no-preserve=mode,ownership "${scriptdir}/bin/ngxdissite" /usr/local/bin/
+cp --no-preserve=mode,ownership "${scriptdir}/bin/ngxcreate" /usr/local/bin/
+chmod 755 /usr/local/bin/ngxensite /usr/local/bin/ngxdissite /usr/local/bin/ngxcreate
+printf ' Done !\n'
