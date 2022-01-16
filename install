@@ -22,39 +22,38 @@ if printf '%s\n%s\n' "$BASH_VERSION" "4.4" | sort -rVC; then
 else
   unset sortsupported
 fi
-if [ ! -d "/etc/bash_completion.d" ]; then mkdir -p "/etc/bash_completion.d"; fi
-nginx_available="/etc/nginx/sites-available"
-nginx_enabled="/etc/nginx/sites-enabled"
-scriptdir=$(dirname "$(readlink -f "$0")")
 ngxcondition="/root/.ngx_donotremove"
-USER_HOME=$(getent passwd $SUDO_USER | cut -d: -f6)
 completionfile="/etc/bash_completion.d/nginxsite_complete"
-# First run
-printf "Installing nginx site wrapper script..."
-# Installing autocomplete
-if [ ! -f $ngxcondition ]; then
+if [ ! -f $ngxcondition ] || [ ! -f $completionfile ]; then
+  if [ ! -d "/etc/bash_completion.d" ]; then mkdir -p "/etc/bash_completion.d"; fi
+  nginx_available="/etc/nginx/sites-available"
+  nginx_enabled="/etc/nginx/sites-enabled"
+  scriptdir=$(dirname "$(readlink -f "$0")")
+  # First run
+  printf "Installing nginx site wrapper script..."
+  # Installing autocomplete
   touch $ngxcondition
-  cat <<'EOF' >> "$completionfile"
+  cat << EOF >> "$completionfile"
 # BEGIN AUTOCOMPLETE
 function _site_complete()
 {
   local cur opts sitepath
-  case ${COMP_LINE} in
+  case "\${COMP_LINE}" in
     *ensite*|*create*) sitepath="available";;
     *dissite*) sitepath="enabled";;
   esac
   COMPREPLY=()
-  cur="${COMP_WORDS[COMP_CWORD]}"
+  cur="\${COMP_WORDS[COMP_CWORD]}"
   opts="--help --restart -h -r"
-  [[ $(ls -q /etc/nginx/sites-${sitepath}/ | wc -l) -eq 1 ]] && COMPREPLY+=( $'\xC2\xA0' )
+  [[ \$(ls -q /etc/nginx/sites-\${sitepath}/ | wc -l) -eq 1 ]] && COMPREPLY+=( $'\xC2\xA0' )
 
-  if [[ ${cur} == -* ]]; then
-    COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+  if [[ "\${cur}" == -* ]]; then
+    COMPREPLY=( \$(compgen -W "\${opts}" -- "\${cur}") )
     return 0
   else
-    for filename in /etc/nginx/sites-${sitepath}/"${cur}"*; do
-      [[ -f $filename ]] || continue
-      COMPREPLY+=( $(echo ${filename##*/}) )
+    for filename in /etc/nginx/sites-\${sitepath}/"\${cur}"*; do
+      [[ -f "\$filename" ]] || continue
+      COMPREPLY+=( \$(echo "\${filename##*/}") )
     done
   fi
 }
@@ -62,7 +61,6 @@ function _site_complete()
 complete $sortsupported -F _site_complete ngxensite ngxdissite ngxcreate
 # END AUTOCOMPLETE
 EOF
-fi
 # Creating directory if not exist
 if [ ! -d "$nginx_available" ]; then mkdir -p "$nginx_available"; fi
 if [ ! -d "$nginx_enabled" ]; then mkdir -p "$nginx_enabled"; fi
@@ -75,3 +73,7 @@ cp --no-preserve=mode,ownership "${scriptdir}/bin/ngxdissite" /usr/local/bin/
 cp --no-preserve=mode,ownership "${scriptdir}/bin/ngxcreate" /usr/local/bin/
 chmod 755 /usr/local/bin/ngxensite /usr/local/bin/ngxdissite /usr/local/bin/ngxcreate
 printf ' Done !\n'
+else
+  echo "Nginxsite already installed"
+  exit 1
+fi
