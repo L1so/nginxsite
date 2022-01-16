@@ -12,7 +12,7 @@ else
     read -s -n1 -p "Do you want to remove this (script) directory ? (y/n)" wantremove
     echo
     case "$wantremove" in
-      [Yy]* ) rm -r "$scriptdir"; echo "$scriptdir deleted" '!';;
+      [Yy]* ) rm -rf "$scriptdir"; echo "$scriptdir deleted" '!';;
       [Nn]* ) exit 0;;
       * ) echo "Invalid choice" >&2;;
     esac
