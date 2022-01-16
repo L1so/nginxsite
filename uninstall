@@ -1,5 +1,5 @@
 #!/bin/bash
-# Uninstall Script
+# Uninstall script
 ngxcondition="/root/.ngx_donotremove"
 completionfile="/etc/bash_completion.d/nginxsite_complete"
 if [[ $EUID -ne 0 ]]; then
