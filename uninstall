@@ -11,7 +11,12 @@ elif [ ! -f $ngxcondition ] || [ ! -f $completionfile ]; then
 else
   scriptdir=$(dirname "$(readlink -f "$0")")
   printf "Removing nginx site wrapper script..."
-  rm -f /usr/local/bin/ngxensite /usr/local/bin/ngxdissite /usr/local/bin/ngxcreate /root/.ngx_donotremove /etc/bash_completion.d/nginxsite_complete
+  rm -f \
+  /usr/local/bin/ngxensite \
+  /usr/local/bin/ngxdissite \
+  /usr/local/bin/ngxdelete \
+  /usr/local/bin/ngxcreate \
+  $ngxcondition $completionfile
   mv /etc/nginx/.nginx.conf.ngx_backup /etc/nginx/nginx.conf
   while [[ ! $wantremove =~ ^[yYnN]$ ]]; do
     read -s -n1 -p "Do you want to remove this (script) directory ? (y/n)" wantremove
