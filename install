@@ -37,28 +37,32 @@ if [ ! -f $ngxcondition ] || [ ! -f $completionfile ]; then
 # BEGIN AUTOCOMPLETE
 function _site_complete()
 {
-  local cur opts sitepath
-  case "\${COMP_LINE}" in
-    *ensite*|*create*) sitepath="available";;
-    *dissite*) sitepath="enabled";;
-  esac
-  COMPREPLY=()
-  cur="\${COMP_WORDS[COMP_CWORD]}"
-  opts="--help --restart -h -r"
-  [[ \$(ls -q /etc/nginx/sites-\${sitepath}/ | wc -l) -eq 1 ]] && COMPREPLY+=( $'\xC2\xA0' )
+    local sitepath comnum cur opts
+    case "\${COMP_LINE}" in
+      *ensite*|*create*|*delete*) sitepath="available"; findtype="f";;
+      *dissite*) sitepath="enabled"; findtype="l";;
+    esac
 
-  if [[ "\${cur}" == -* ]]; then
-    COMPREPLY=( \$(compgen -W "\${opts}" -- "\${cur}") )
-    return 0
-  else
-    for filename in /etc/nginx/sites-\${sitepath}/"\${cur}"*; do
-      [[ -f "\$filename" ]] || continue
-      COMPREPLY+=( \$(echo "\${filename##*/}") )
-    done
-  fi
+    COMPREPLY=()
+    cur="\${COMP_WORDS[COMP_CWORD]}"
+    opts="--help --restart -h -r"
+
+    if (( COMP_CWORD > 250 )); then
+        COMPREPLY=( \$(for filename in "/etc/nginx/sites-\${sitepath}/"*; do echo \${filename##*/}; done) )
+        if [[ \${#COMPREPLY[@]} -gt 0 ]]; then
+            COMPREPLY+=( $'\xC2\xA0' )
+        fi
+        return
+    fi
+
+    if [[ \${cur} == -* ]]; then
+        COMPREPLY=( \$( compgen -W "\${opts}" -- \${cur} ) )
+        return 0
+    else
+        COMPREPLY=( \$( compgen -o filenames -W "\$(find "/etc/nginx/sites-\${sitepath}" -type \$findtype -printf "%f\n")" -- \$cur) )
+    fi
 }
-
-complete $sortsupported -F _site_complete ngxensite ngxdissite ngxcreate
+complete $sortsupported -F _site_complete ngxensite ngxdissite ngxcreate ngxdelete
 # END AUTOCOMPLETE
 EOF
 # Creating directory if not exist

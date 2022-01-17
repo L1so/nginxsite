@@ -64,7 +64,6 @@ while [ $# -gt 0 ]; do
     esac
 done
 
-nginx_available="/etc/nginx/sites-available"
 nginx_enabled="/etc/nginx/sites-enabled"
 
 if [[ $EUID -ne 0 ]]; then
@@ -100,14 +99,10 @@ else
     # -h filename: True if file exists and is a symbolic link.
     # -f filename: Returns True if file, filename is an ordinary file.
     for optsite in "$@"; do
-      set -- "$(basename $optsite)"
+      set -- "$(basename "$optsite")"
       if [ -L "${nginx_enabled}/$optsite" ]; then
         rm "${nginx_enabled}/$optsite"
         echo "Successfully disabling $optsite !"
-      else
-        echo "$optsite is a broken symlink, check $nginx_available for $optsite existence !"
-        continue
-      fi
       elif [ -e "${nginx_enabled}/$optsite" ]; then
         echo "$optsite is not valid symlink !"
         continue
