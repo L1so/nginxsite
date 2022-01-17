@@ -5,16 +5,18 @@ if [[ $EUID -ne 0 ]]; then
    exit 1
 fi
 # Check if bash-completion installed
-if ! { dpkg-query -W -f='${Status}' bash-completion | grep "ok installed"; } > /dev/null 2>&1; then
-  {
-    echo "Bash Completion is not installed"
-    echo "You must install it first in order to use this script"
-    echo "Run: sudo apt-get install bash-completion"
-  } 1>&2
-  exit 1
-elif ! [[ $(ps -acx | grep nginx | wc -l) > 0 ]] || { ! { dpkg-query -W -f='${Status}' nginx | grep "ok installed"; } > /dev/null 2>&1; }; then
-  echo "Nginx is not installed/running" 1>&2
-  exit 1
+if [ "$1" != "--force" ]; then
+  if ! { dpkg-query -W -f='${Status}' bash-completion | grep "ok installed"; } > /dev/null 2>&1; then
+    {
+      echo "Bash Completion is not installed"
+      echo "You must install it first in order to use this script"
+      echo "Run: sudo apt-get install bash-completion"
+    } 1>&2
+    exit 1
+  elif ! [[ $(ps -acx | grep nginx | wc -l) > 0 ]] || { ! { dpkg-query -W -f='${Status}' nginx | grep "ok installed"; } > /dev/null 2>&1; }; then
+    echo "Nginx is not installed/running" 1>&2
+    exit 1
+  fi
 fi
 # Check if -o nosort supported (Require bash 4.4+)
 if printf '%s\n%s\n' "$BASH_VERSION" "4.4" | sort -rVC; then
