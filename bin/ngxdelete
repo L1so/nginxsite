@@ -48,7 +48,6 @@ else
     done
   fi
 fi
-printf "Removing --> %s" "${item_remove[*]}"
+printf "Removing --> %s\n" "${item_remove[@]}"
 rm -f "${item_remove[@]}"
-printf ' Done !\n'
 exit 0
