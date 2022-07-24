@@ -15,6 +15,7 @@ else
   /usr/local/bin/ngxdissite \
   /usr/local/bin/ngxdelete \
   /usr/local/bin/ngxcreate \
+  /usr/local/bin/ngxlist \
   $ngxcondition $completionfile
   [ -f "/etc/nginx/.nginx.conf.ngx_backup" ] && mv /etc/nginx/.nginx.conf.ngx_backup /etc/nginx/nginx.conf
   printf ' Done !\n'

@@ -77,7 +77,8 @@ cp --no-preserve=mode,ownership "${scriptdir}/bin/ngxensite" /usr/local/bin/
 cp --no-preserve=mode,ownership "${scriptdir}/bin/ngxdissite" /usr/local/bin/
 cp --no-preserve=mode,ownership "${scriptdir}/bin/ngxcreate" /usr/local/bin/
 cp --no-preserve=mode,ownership "${scriptdir}/bin/ngxdelete" /usr/local/bin/
-chmod 755 /usr/local/bin/ngxensite /usr/local/bin/ngxdissite /usr/local/bin/ngxcreate /usr/local/bin/ngxdelete
+cp --no-preserve=mode,ownership "${scriptdir}/bin/ngxlist" /usr/local/bin/
+chmod 755 /usr/local/bin/ngxensite /usr/local/bin/ngxdissite /usr/local/bin/ngxcreate /usr/local/bin/ngxdelete /usr/local/bin/ngxlist
 printf ' Done !\n'
 echo "You may have to manually type \". $completionfile\" to apply change"
 else
