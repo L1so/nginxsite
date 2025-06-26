@@ -1,0 +1,22 @@
+#!/bin/bash
+# List site in NginX
+nginx_available="/etc/nginx/sites-available"
+nginx_enabled="/etc/nginx/sites-enabled"
+do_empty() {
+  printf "%s\n" "$dostring list is empty !"
+  exit 1
+}
+declare -a site
+if [ -z "$1" ]; then
+  dostring="available"
+  while IFS= read -r sitelist; do site+=("$sitelist"); done < <(find $nginx_available -type f ! -name "default" -printf "%f\n")
+elif [ "$1" = "-e" ]; then
+  dostring="enabled"
+  while IFS= read -r sitelist; do site+=("$sitelist"); done < <(find $nginx_enabled -type l ! -name "default" -printf "%f\n")
+else
+  printf "%s\n%s\n" "$(basename $0): invalid option \"$1\"" "Use \"-e\" to list enabled site" && exit 1
+fi
+[ -z "${site[*]}" ] && do_empty
+printf "+%46s+\n" | tr ' ' '-'; printf "| %-44s |\n" "List of $dostring site"; printf "+%46s+\n" | tr ' ' '='
+printf "| %-44s |\n" "${site[@]}"
+printf "+%46s+\n" | tr ' ' '-'

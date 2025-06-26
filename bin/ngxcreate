@@ -1,0 +1,32 @@
+#!/bin/bash
+# Creating NginX site seamlessly
+if [[ $EUID -ne 0 ]]; then
+   echo "This script must be run as root"
+   exit 1
+fi
+nginx_available="/etc/nginx/sites-available"
+defeditor="${EDITOR:-${VISUAL:-nano}}"
+fqdnregex='(?=^.{1,253}$)(^(((?!-)[a-zA-Z0-9-]{1,63}(?<!-))|((?!-)[a-zA-Z0-9-]{1,63}(?<!-)\.)+[a-zA-Z]{2,63})$)'
+if [ -z "$1" ]; then
+  read -rep $'Please Enter a Domain Name (default TLD is .com):\n' defdomain
+else
+  defdomain="$1"
+fi
+# Fully Qualified Domain Name Check
+if ! echo "$defdomain" | grep -P $fqdnregex > /dev/null; then
+  printf "Your given url \"%s\" is not valid FQDN\n" "$defdomain"
+  exit 1
+fi
+if ! echo "$defdomain" | grep -oE '\.[^.]+$' > /dev/null; then
+  # Not contain TLD, fallback to .com instead
+  defdomain="${defdomain}.com"
+fi
+# Launching editor
+$defeditor "${nginx_available}/${defdomain}"
+if [ $? -eq 0 ]; then
+  if [ ! -f "${nginx_available}/${defdomain}" ]; then
+    printf "${defdomain} is not saved !\n" "${defdomain}"
+  else
+    printf "Your site is saved at %s\n" "${nginx_available}/${defdomain}"
+  fi
+fi

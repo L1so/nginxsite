@@ -1,0 +1,114 @@
+#!/bin/bash
+# Disabling site in NginX
+# Credit to: https://gist.github.com/fideloper/8261546
+! getopt --test > /dev/null
+if [[ ${PIPESTATUS[0]} -ne 4 ]]; then
+  echo 'I’m sorry, `getopt --test` failed in this environment.'
+  exit 1
+fi
+
+# Begin function
+function display_help() {
+  echo "usage: $(basename $0) [OPTION] [SITENAME]" >&2
+  echo
+  echo "   -r, --restart              immediately restart nginx after operation"
+  echo "   -h, --help                 display this help section"
+  exit 0
+}
+function do_restart() {
+  local status=$?
+  if (( status == 0 )); then
+    nginxsite="${opt:-$optsite}"
+    tempfile=$(mktemp)
+    printf "Reloading configuration..."
+    if /usr/sbin/nginx -s reload 2>$tempfile; then
+      sleep 1
+      printf ' Done ! \n'
+    else
+      sleep 1
+      printf ' Failed ! \n'
+      printf "%s\n" "$(<$tempfile)"
+    fi
+    rm $tempfile
+  else
+    exit $status
+  fi
+}
+
+! optfin=$(getopt --options="rh" --longoptions="restart,help" --name "$0" -- "$@")
+if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
+    # e.g. return value is 1
+    #  then getopt has complained about wrong arguments to stdout
+    exit 2
+fi
+eval set -- "$optfin"
+while [ $# -gt 0 ]; do
+    case "$1" in
+       -r|--restart)
+             trap do_restart EXIT
+             shift
+             ;;
+       -h|--help)
+             display_help
+             ;;
+       --)
+             shift
+             break
+             ;;
+       -*)
+             display_help
+             ;;
+       *)
+             break
+             ;;
+    esac
+done
+
+nginx_enabled="/etc/nginx/sites-enabled"
+
+if [[ $EUID -ne 0 ]]; then
+   echo "This script must be run as root"
+   exit 1
+fi
+
+# -z str: Returns True if the length of str is equal to zero.
+if [ $# -eq 0 ]; then
+  title="Please select a website"
+  while IFS= read -r; do sitelist+=("$REPLY"); done < <(find $nginx_enabled -type l -print0 | xargs --null basename -a 2> /dev/null)
+  if [ ${#sitelist[@]} -eq 0 ]; then
+    echo "No site is being enabled !"
+    exit 0
+  else
+    COLUMNS=1
+    echo "$title"
+    PS3="Pick an option: "
+    select opt in "${sitelist[@]}" "Cancel"; do
+      if [ "$opt" = "Cancel" ]; then
+        echo 'Bye!' >&2
+        exit
+      elif [ -z "$opt" ]; then
+        echo "Invalid choices" >&2
+      else
+        [ -L "${nginx_enabled}/$opt" ] && rm "${nginx_enabled}/$opt"
+        echo "Successfully disabling $opt !"
+        break
+      fi
+    done
+  fi
+else
+    # -h filename: True if file exists and is a symbolic link.
+    # -f filename: Returns True if file, filename is an ordinary file.
+    for optsite in "$@"; do
+      set -- "$(basename "$optsite")"
+      if [ -L "${nginx_enabled}/$optsite" ]; then
+        rm "${nginx_enabled}/$optsite"
+        echo "Successfully disabling $optsite !"
+      elif [ -e "${nginx_enabled}/$optsite" ]; then
+        echo "$optsite is not valid symlink !"
+        continue
+      else
+        echo "$optsite does not exist !"
+        continue
+      fi
+    done
+fi

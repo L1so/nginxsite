@@ -1,0 +1,63 @@
+#!/bin/bash
+# Delete NginX site
+if [[ $EUID -ne 0 ]]; then
+   echo "This script must be run as root"
+   exit 1
+fi
+nginx_available="/etc/nginx/sites-available"
+nginx_enabled="/etc/nginx/sites-enabled"
+if [ -z "$1" ]; then
+  # Load all site list into array
+  sitelist=( $(find $nginx_available -mindepth 1 -type f -printf "%f\n") )
+  COLUMNS=1
+  PS3="Select a website to be deleted: "
+  select defdomain in "${sitelist[@]}" "Cancel"; do
+    if [ "$defdomain" = "Cancel" ]; then
+      echo 'Bye!' >&2
+      exit
+    elif [ -z "$defdomain" ]; then
+      echo "Invalid choices" >&2
+    else
+      item_remove=("${nginx_available}/$defdomain")
+      if [ -L "${nginx_enabled}/$defdomain" ]; then
+        while [[ ! $forceremove =~ ^[yYnN]$ ]]; do
+          read -s -n1 -p "Do you want remove the symlink for $defdomain too ? (y/n)" forceremove
+          echo
+          case $forceremove in
+            [Yy]* ) item_remove+=("${nginx_enabled}/$defdomain"); break 2;;
+            [Nn]* ) exit 1;;
+            * ) echo "Invalid input" >&2;;
+          esac
+        done
+      else
+        break
+      fi
+    fi
+  done
+else
+  item_remove=()
+  for optsite in "$@"; do
+    set -- "$(basename $optsite)"
+    if [ -f "${nginx_available}/$optsite" ]; then
+      item_remove+=("${nginx_available}/$optsite")
+      if [ -L "${nginx_enabled}/$optsite" ]; then
+        while [[ ! $forceremove =~ ^[yYnN]$ ]]; do
+          read -s -n1 -p "Do you want remove the symlink for $optsite too ? (y/n)" forceremove
+          echo
+          case $forceremove in
+            [Yy]* ) item_remove+=("${nginx_enabled}/$optsite");;
+            [Nn]* ) continue;;
+            * ) echo "Invalid input" >&2;;
+          esac
+        done
+        unset forceremove
+      fi
+    else
+      echo "$optsite does not exist" >&2
+      continue
+    fi
+  done
+fi
+printf "Removing --> %s\n" "${item_remove[@]}"
+rm -f "${item_remove[@]}"
+exit 0

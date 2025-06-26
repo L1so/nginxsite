@@ -1,0 +1,22 @@
+#!/bin/bash
+# Uninstall script
+ngxcondition="/root/.ngx_donotremove"
+completionfile="/etc/bash_completion.d/nginxsite_complete"
+if [[ $EUID -ne 0 ]]; then
+  echo "This script must be run as root"
+  exit 1
+elif [ ! -f $ngxcondition ] || [ ! -f $completionfile ]; then
+  echo "Nginxsite already removed"
+  exit 1
+else
+  printf "Removing nginx site wrapper script..."
+  rm -f \
+  /usr/local/bin/ngxensite \
+  /usr/local/bin/ngxdissite \
+  /usr/local/bin/ngxdelete \
+  /usr/local/bin/ngxcreate \
+  /usr/local/bin/ngxlist \
+  $ngxcondition $completionfile
+  [ -f "/etc/nginx/.nginx.conf.ngx_backup" ] && mv /etc/nginx/.nginx.conf.ngx_backup /etc/nginx/nginx.conf
+  printf ' Done !\n'
+fi

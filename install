@@ -1,0 +1,87 @@
+#!/bin/bash
+# Installation scripts
+if [[ $EUID -ne 0 ]]; then
+   echo "This script must be run as root" 1>&2
+   exit 1
+fi
+# Check if bash-completion installed
+if [ "$1" != "--force" ]; then
+  if ! command -v complete >/dev/null 2>&1; then
+    {
+      echo "Bash Completion is not installed"
+      echo "You must install it first in order to use this script"
+    } 1>&2
+    exit 1
+  elif ! [[ $(ps -acx | grep nginx | wc -l) > 0 ]] || { ! command -v nginx >/dev/null 2>&1; }; then
+    echo "Nginx is not installed/running" 1>&2
+    exit 1
+  fi
+fi
+# Check if -o nosort supported (Require bash 4.4+)
+if printf '%s\n%s\n' "$BASH_VERSION" "4.4" | sort -rVC; then
+  sortsupported="-o nosort"
+else
+  unset sortsupported
+fi
+ngxcondition="/root/.ngx_donotremove"
+completionfile="/etc/bash_completion.d/nginxsite_complete"
+if [ ! -f $ngxcondition ] || [ ! -f $completionfile ]; then
+  if [ ! -d "/etc/bash_completion.d" ]; then mkdir -p "/etc/bash_completion.d"; fi
+  nginx_available="/etc/nginx/sites-available"
+  nginx_enabled="/etc/nginx/sites-enabled"
+  scriptdir=$(dirname "$(readlink -f "$0")")
+  # First run
+  printf "Installing nginx site wrapper script..."
+  # Installing autocomplete
+  touch $ngxcondition
+  cat << EOF >> "$completionfile"
+  # BEGIN AUTOCOMPLETE
+  function _site_complete()
+  {
+      local sitepath comnum cur opts
+      case "\${COMP_LINE}" in
+        *ensite*|*create*|*delete*) sitepath="available"; findtype="f";;
+        *dissite*) sitepath="enabled"; findtype="l";;
+      esac
+      COMPREPLY=()
+      cur="\${COMP_WORDS[COMP_CWORD]}"
+      index_cur="\${#COMP_WORDS[COMP_CWORD]}"
+      opts="--help --restart -h -r"
+      if [ "\$index_cur" -eq 0 ]; then
+          COMPREPLY=( \$(for filename in "/etc/nginx/sites-\${sitepath}/"*; do echo \${filename##*/}; done) )
+          if [[ \${#COMPREPLY[@]} -gt 0 ]]; then
+              COMPREPLY+=( \$'\xC2\xA0' )
+          fi
+          return
+      fi
+      if [[ \${cur} == -* ]]; then
+          COMPREPLY=( \$( compgen -W "\${opts}" -- \${cur} ) )
+          return 0
+      else
+          COMPREPLY=( \$( compgen -o filenames -W "\$(find "/etc/nginx/sites-\${sitepath}" -type \$findtype -printf "%f\n")" -- \$cur) )
+      fi
+  }
+  complete $sortsupported -F _site_complete ngxensite ngxdissite ngxcreate ngxdelete
+  # END AUTOCOMPLETE
+EOF
+# Creating directory if not exist
+if [ ! -d "$nginx_available" ]; then mkdir -p "$nginx_available"; fi
+if [ ! -d "$nginx_enabled" ]; then mkdir -p "$nginx_enabled"; fi
+# Configure nginx to use sites-enabled
+if ! grep -q 'include /etc/nginx/sites-enabled/*' /etc/nginx/nginx.conf; then
+  sed -i.ngx_backup '/^http {/,/^}/!b;/^}/i\\tinclude /etc/nginx/sites-enabled/*;' /etc/nginx/nginx.conf
+  mv /etc/nginx/nginx.conf.ngx_backup /etc/nginx/.nginx.conf.ngx_backup
+fi
+# Moving executable
+cp --no-preserve=mode,ownership "${scriptdir}/bin/ngxensite" /usr/local/bin/
+cp --no-preserve=mode,ownership "${scriptdir}/bin/ngxdissite" /usr/local/bin/
+cp --no-preserve=mode,ownership "${scriptdir}/bin/ngxcreate" /usr/local/bin/
+cp --no-preserve=mode,ownership "${scriptdir}/bin/ngxdelete" /usr/local/bin/
+cp --no-preserve=mode,ownership "${scriptdir}/bin/ngxlist" /usr/local/bin/
+chmod 755 /usr/local/bin/ngxensite /usr/local/bin/ngxdissite /usr/local/bin/ngxcreate /usr/local/bin/ngxdelete /usr/local/bin/ngxlist
+printf ' Done !\n'
+echo "You may have to manually type \". $completionfile\" to apply change"
+else
+  echo "Nginxsite already installed"
+  exit 1
+fi
